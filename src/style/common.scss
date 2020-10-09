@@ -1,0 +1,107 @@
+$blue-color: #50a8ec; //1、服务全球页国内国外产品标记条背景色；2、联系我们页title左边竖线颜色；3、关于我们页公司介绍下公司名称下文字使用颜色
+$blue-color-one: #daf1ff; //1、服务全球页分类未选中前的背景色
+$blue-color-two: #73caff; //1、首页更多按钮字体颜色；2、服务全球页分类背景颜色
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  text-decoration: none;
+  color: #333;
+}
+
+ul, li {
+  list-style: none;
+}
+
+.page {
+  min-height: 100vh;
+  min-height: calc(100vh - 450px - 98px);
+  //margin-top: 98px;
+  background-color: rgb(254, 249, 244);
+}
+
+img {
+  width: 100%;
+  display: block;
+}
+
+//门票预约公共title
+.common-title {
+  height: 88px;
+  width: 100%;
+  text-align: center;
+  line-height: 88px;
+  background-color: #b38146;
+  color: #ffffff;
+  font-size: 34px;
+}
+
+/*banner样式*/
+//.banner {
+//  background-color: rgb(80, 168, 236);
+//  height: 88px;
+//  display: flex;
+//  align-items: center;
+//  justify-content: center;
+//  color: rgba(255, 255, 255, 0.6);
+//  font-size: 26px;
+//}
+
+/* 超出省略 start */
+.one-line-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  white-space: nowrap;
+}
+
+.two-line-ellipsis {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  white-space: normal !important;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* 超出省略 end */
+
+//没有数据
+.nodata {
+  margin-top: 50px;
+  font-size: 26px;
+  color: #999;
+  text-align: center;
+}
+
+//禁止点击按钮
+.none-click {
+  background-color: #c9c5c0 !important;
+}
+
+//遮罩
+.mask {
+  background: rgba(0, 0, 0, 0.7);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.5s;
+}
+
+.mask-cont {
+  position: relative;
+  background-color: #ffffff;
+  min-width: 80vw;
+  min-height: 80vh;
+  border-radius: 20px;
+}
