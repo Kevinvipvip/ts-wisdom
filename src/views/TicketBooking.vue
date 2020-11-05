@@ -185,31 +185,39 @@
             this.get_calender();
             return;
           }
-          if (this.btn_click) {
-            this.btn_click = false;
-            let data = {
-              use_date: this.submit_date,
-            };
-            if (this.tourist.length <= 0) {
-              this.$dialog.alert({
-                message: "请添加参观者",
-                confirmButtonColor: '#b38146'
-              })
-            } else {
+          if (this.tourist.length <= 0) {
+            this.$dialog.alert({
+              message: "请添加参观者",
+              confirmButtonColor: '#b38146'
+            })
+          } else {
+            if (this.btn_click) {
+              this.btn_click = false;
+              let data = {
+                use_date: this.submit_date,
+              };
               this.$dialog.confirm({
                 message: '您总共预约了' + this.tourist.length + '个人的门票',
                 confirmButtonColor: '#b38146'
               }).then(() => {
                 this.utils.ajax(this, 'ticket/purchase', data, [46, 55, 56]).then(() => {
                   this.btn_click = true;
-                  this.$dialog.alert({
+                  this.$dialog.confirm({
                     message: "预约成功",
                     confirmButtonText: "查看订单",
-                    confirmButtonColor: '#b38146'
+                    confirmButtonColor: '#b38146',
+                    cancelButtonText: "继续预约",
+                    cancelButtonColor: '#b38146'
                   }).then(() => {
+                    this.btn_click = true;
                     this.$router.push({
                       name: 'history'
                     })
+                  }).catch(() => {
+                    this.btn_click = true;
+                    this.date = '';
+                    this.submit_date = '';
+                    this.tourist = [];
                   });
                 }).catch(err => {
                   console.log(err);
@@ -309,9 +317,11 @@
 
     .paiqi-box .paiqi {
       margin: 15px 25px;
-      .van-cell--clickable:active{
+
+      .van-cell--clickable:active {
         background-color: transparent;
       }
+
       .van-cell {
         font-size: 30px;
         color: #000;

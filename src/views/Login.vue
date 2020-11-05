@@ -36,6 +36,7 @@
         save: '',
         code: '',
         code_is_click: true,
+        no_second: true,
         clock: 60
       };
     },
@@ -49,8 +50,8 @@
         this.save_img = this.save_img + '?' + random;
         this.save = '';
       },
-      get_code() {
-        console.log(typeof this.tel);
+
+      get_code() {//获取短信验证码
         if (!this.tel.trim()) {
           this.$toast("请输入手机号")
         } else if (!this.save.trim()) {
@@ -58,21 +59,32 @@
         } else if (!this.config.tel_reg.test(this.tel)) {
           this.$toast("请输入正确的手机号");
         } else {
-          this.utils.ajax(this, 'login/sendSms', { tel: this.tel, vcode: this.save }).then(() => {
-            this.$dialog.alert({
-              message: '短信已发送',
-              confirmButtonColor:'#b38146'
-            }).then(() => {
-              this.code_is_click = false;
-              let interval = setInterval(() => {
-                this.clock--;
-                if (this.clock === 0) {
-                  this.code_is_click = true;
-                  window.clearInterval(interval)
-                }
-              }, 1000);
+          if (this.no_second) {
+            this.no_second = false;
+            this.utils.ajax(this, 'login/sendSms', { tel: this.tel, vcode: this.save }, [47]).then(() => {
+              this.$dialog.alert({
+                message: '短信已发送',
+                confirmButtonColor: '#b38146'
+              }).then(() => {
+                this.code_is_click = false;
+                let interval = setInterval(() => {
+                  this.clock--;
+                  if (this.clock === 0) {
+                    this.code_is_click = true;
+                    this.no_second = true;
+                    window.clearInterval(interval)
+                  }
+                }, 1000);
+              });
+            }).catch((err) => {
+              this.$dialog.alert({
+                message: err.data,
+                confirmButtonColor: '#b38146'
+              }).then(() => {
+                this.no_second = true;
+              })
             });
-          });
+          }
         }
       },
       login() {
@@ -92,7 +104,7 @@
             localStorage.setItem('tel', res.tel);
             this.$dialog.alert({
               message: '登录成功',
-              confirmButtonColor:'#b38146'
+              confirmButtonColor: '#b38146'
             }).then(() => {
               this.$router.replace({
                 path: this.$route.query.url,

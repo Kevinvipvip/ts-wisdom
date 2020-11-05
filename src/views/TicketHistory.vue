@@ -47,7 +47,7 @@
           }
 
           this.history = list.list;
-          console.log(list)
+          // console.log(list)
         });
       } else {
         this.$router.push({ name: 'login', query: { url: this.$route.path, params: this.$route.query } });

@@ -81,6 +81,11 @@
 
 <style lang="scss" scoped>
   .ticket {
+    img {
+      width: 100%;
+      min-height: 250px;
+    }
+
     .content {
       margin: 0 67px;
       overflow: hidden;
@@ -139,6 +144,7 @@
 
           img {
             width: 50%;
+            min-height: unset;
           }
         }
       }

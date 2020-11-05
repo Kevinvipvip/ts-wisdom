@@ -27,7 +27,7 @@ const routes = [
   }, {
     path: '/history',
     name: 'history',
-    component: () => import( '../views/History.vue')// 历史订单
+    component: () => import( '../views/TicketHistory.vue')// 历史订单
   }, {
     path: '/ticket_detail',
     name: 'ticket_detail',

@@ -69,8 +69,11 @@ const ajax = (vue, url, data, handle_code_list = []) => {
                 });
               });
               break;
+            // case 44:
+            //   vue.$toast(res.data.data);
+            //   break;
             default:
-              vue.$toast(res.data.message);
+              vue.$toast(res.data.data);
               break;
           }
         }
