@@ -25,7 +25,7 @@
           </div>
         </div>
         <!--<span>0</span>-->
-        <span v-if="item.status_type===1" @click="createCode(index)"><img src="../assets/check-code.png"/></span>
+        <span v-if="item.status_type===1" @click="createCode(index)"><img src="../assets/icon-check-code.png"/></span>
       </li>
     </ul>
     <div class="fill-bottom"></div>
@@ -58,7 +58,7 @@
   export default {
     data() {
       return {
-        inactiveIcon: this.config.aliyun + '/ts-static/ticket-checked.png',
+        inactiveIcon: this.config.aliyun + 'ts-static/ticket-checked.png',
         id: 0,
         detail: {},
 
@@ -68,7 +68,7 @@
 
         refund_price: '0.00',//退款总计
         show_qrcode: false,//显示二维码
-        code_bg: this.config.aliyun + '/ts-static/ticket-code-bg.png',
+        code_bg: this.config.aliyun + 'ts-static/ticket-code-bg.png',
 
         clock: 0,
         ckeck_clock: 0,//一分钟以内可重复扫码

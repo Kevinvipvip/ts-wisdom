@@ -9,7 +9,7 @@ import {
   Toast,
   Popup,
   Pagination,
-  Dialog, Calendar, Cell, Checkbox, List
+  Dialog, Calendar, Cell, Checkbox, List, Icon, Picker
 } from 'vant'
 
 Vue.use(Toast)
@@ -19,4 +19,6 @@ Vue.use(Toast)
   .use(Cell)
   .use(Checkbox)
   .use(List)
+  .use(Icon)
+  .use(Picker)
   .use(Pagination);

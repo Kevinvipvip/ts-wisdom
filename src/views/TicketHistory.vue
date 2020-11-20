@@ -30,7 +30,7 @@
   export default {
     data() {
       return {
-        right: this.config.aliyun + '/ts-static/ticket-right.png',
+        right: this.config.aliyun + 'ts-static/ticket-right.png',
         count: 0,
         history: []
       };

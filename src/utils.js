@@ -5,7 +5,7 @@ const date_format = (date, fmt = 'yyyy.MM.dd') => {
   if (date) {
     // 如果是数字类型
     if (typeof date === 'number') {
-      date = new Date(date * 1000);
+      date = date.toString()[12] ? new Date(date) : new Date(date * 1000);
     }
 
     var o = {
@@ -201,10 +201,62 @@ const get_status = (refund, check, expire, return_data = 'tip') => {
   return data;
 };
 
+const jump = (vue, url) => {
+  let page = url.split('?');
+  if (url) {
+    if (url.indexOf('http') !== -1) {
+      location.href = url;
+    } else {
+      if (page[1]) {
+        let arr_query = page[1].split('&'), query = {};
+        for (let i = 0; i < arr_query.length; i++) {
+          let qurey_item = arr_query[i].split("=");
+          query[qurey_item[0]] = qurey_item[1];
+        }
+        vue.$router.push({ path: '/' + page[0], query: query });
+      } else {
+        vue.$router.push({ path: '/' + page[0] });
+      }
+    }
+  }
+};
+
+// 将秒转换成时分秒
+const secondsFormat = (s) => {
+  var day = Math.floor(s / (24 * 3600)); // Math.floor()向下取整
+  var hour = Math.floor((s - day * 24 * 3600) / 3600);
+  var minute = Math.floor((s - day * 24 * 3600 - hour * 3600) / 60);
+  var second = s - day * 24 * 3600 - hour * 3600 - minute * 60;
+  return day + "天" + hour + "时" + minute + "分" + second + "秒";
+};
+const s_to_hs = (s) => {
+  //将秒转换成时分秒
+  //计算分钟
+  //算法：将秒数除以60，然后下舍入，既得到分钟数
+  let hous, min;
+  min = Math.floor(s / 60);
+  hous = Math.floor(min / 60);
+  //计算秒
+  //算法：取得秒%60的余数，既得到秒数
+  min = min % 60;
+  s = s % 60;
+  //将变量转换为字符串
+  min += '';
+  s += '';
+  //如果只有一位数，前面增加一个0
+  min = (min.length == 1) ? '0' + min : min;
+  s = (s.length == 1) ? '0' + s : s;
+  return hous + ':' + min + ':' + s;
+};
+
+
 export default {
   date_format,    //格式化时间
   ajax,           //请求后台数据
   format_img,     //补全图片路径
   aliyun_format,  //补全阿里云图片路径
   get_status,  //检测订单状态
+  jump,  //公共跳页方法
+  secondsFormat,  //将秒转换成日时分秒
+  s_to_hs,  //将秒转换成时分秒
 }

@@ -9,6 +9,22 @@ const routes = [
     name: 'home',
     component: () => import('../views/Home.vue')// 首页
   }, {
+    path: '/collection',
+    name: 'collection',
+    component: () => import( '../views/Collection.vue')// 精品馆藏
+  }, {
+    path: '/collect-detail',
+    name: 'collect-detail',
+    component: () => import( '../views/CollectionDetail.vue')// 藏品详情
+  }, {
+    path: '/news',
+    name: 'news',
+    component: () => import( '../views/News.vue')// 新闻资讯
+  }, {
+    path: '/new-detail',
+    name: 'new-detail',
+    component: () => import( '../views/NewDetail.vue')// 新闻详情
+  }, {
     path: '/about',
     name: 'about',
     component: () => import( '../views/About.vue')// 关于我们
@@ -40,6 +56,10 @@ const routes = [
     path: '/check_history',
     name: 'check_history',
     component: () => import( '../views/TicketCheckHistory.vue')// 我的核销历史页
+  }, {
+    path: '/test',
+    name: 'test',
+    component: () => import( '../views/Test.vue')// test
   }
 ];
 

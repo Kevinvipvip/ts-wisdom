@@ -11,7 +11,7 @@
 
     <div class="mask" v-if="show_notice">
       <div class="mask-cont mask-notice">
-        <h3><span>预约须知</span><i @click="show_notice = false"><img src="../assets/x.png" alt=""></i></h3>
+        <h3><span>预约须知</span><i @click="show_notice = false"><img src="../assets/icon-x.png" alt=""></i></h3>
         <div class="notice">{{notice}}</div>
         <div class="btn" @click="fn_to_booking" v-if="can_click">我已阅读并同意</div>
         <div class="btn none-click" v-else>我已阅读并同意（{{clock}}s）</div>
@@ -24,7 +24,7 @@
   export default {
     data() {
       return {
-        banner: this.config.aliyun + '/ts-static/ticket-banner.jpg',
+        banner: this.config.aliyun + 'ts-static/ticket-banner.jpg',
 
         notice: this.config.notice,//游客须知
         show_notice: false,

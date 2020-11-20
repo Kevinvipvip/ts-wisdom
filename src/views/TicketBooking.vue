@@ -90,8 +90,8 @@
         // 添加观众
         name: '',
         IDcard: '',
-        check_img_one: this.config.aliyun + '/ts-static/ticket-checked.png',
-        check_img_two: this.config.aliyun + '/ts-static/ticket-check.png'
+        check_img_one: this.config.aliyun + 'ts-static/ticket-checked.png',
+        check_img_two: this.config.aliyun + 'ts-static/ticket-check.png'
       };
     },
     mounted() {
