@@ -7,10 +7,18 @@ const date_format = (date, fmt = 'yyyy.MM.dd') => {
     if (typeof date === 'number') {
       date = date.toString()[12] ? new Date(date) : new Date(date * 1000);
     }
-
+    var weekday = new Array(7);
+    weekday[0] = "日";
+    weekday[1] = "一";
+    weekday[2] = "二";
+    weekday[3] = "三";
+    weekday[4] = "四";
+    weekday[5] = "五";
+    weekday[6] = "六";
     var o = {
       "M+": date.getMonth() + 1, //月份
       "d+": date.getDate(), //日
+      'w+': weekday[date.getDay()],//周几
       "h+": date.getHours(), //小时
       "m+": date.getMinutes(), //分
       "s+": date.getSeconds(), //秒
@@ -69,9 +77,25 @@ const ajax = (vue, url, data, handle_code_list = []) => {
                 });
               });
               break;
-            // case 44:
-            //   vue.$toast(res.data.data);
-            //   break;
+            case 66:
+              vue.$dialog.alert({
+                message: res.data.data,
+                confirmButtonColor: '#cf903a',
+              }).then(() => {
+                vue.$router.replace({ name: 'activity' });
+              });
+              break;
+            case 67:
+              vue.$dialog.alert({
+                message: res.data.data,
+                confirmButtonColor: '#cf903a',
+              }).then(() => {
+                vue.$router.replace({ name: 'mine', query: { on: 2 } });
+              });
+              break;
+            case 58:
+              vue.$toast(res.data.message);
+              break;
             default:
               vue.$toast(res.data.data);
               break;
@@ -138,18 +162,20 @@ const empty_or = (img) => {
 };
 
 const get_status = (refund, check, expire, return_data = 'tip') => {
-  let status, img, data, type;
+  let status, img, data, type, color;
   if (expire !== 0) {
     switch (expire) {
       case 1:
         status = '部分过期';
         type = 2;
-        img = config.aliyun + '/ts-static/ticket-expired-part.png';
+        img = config.aliyun + '/ts-static/wap/ticket-expired-part.png';
+        color = '#cf903a';
         break;
       case 2:
         status = '已过期';
         type = 2;
-        img = config.aliyun + '/ts-static/ticket-expired.png';
+        img = config.aliyun + '/ts-static/wap/ticket-expired.png';
+        color = '#999999';
         break;
     }
   } else {
@@ -158,12 +184,14 @@ const get_status = (refund, check, expire, return_data = 'tip') => {
         case 1:
           status = '部分核销';
           type = 1;
-          img = config.aliyun + '/ts-static/ticket-hexiao-part.png';
+          img = config.aliyun + '/ts-static/wap/ticket-hexiao-part.png';
+          color = '#cf903a';
           break;
         case 2:
           status = '已核销';
           type = 2;
-          img = config.aliyun + '/ts-static/ticket-hexiao.png';
+          img = config.aliyun + '/ts-static/wap/ticket-hexiao.png';
+          color = '#999999';
           break;
       }
     } else {
@@ -172,18 +200,21 @@ const get_status = (refund, check, expire, return_data = 'tip') => {
           case 1:
             status = '部分退票';
             type = 1;
-            img = config.aliyun + '/ts-static/ticket-refund-part.png';
+            img = config.aliyun + '/ts-static/wap/ticket-refund-part.png';
+            color = '#cf903a';
             break;
           case 2:
             status = '已退票';
             type = 2;
-            img = config.aliyun + '/ts-static/ticket-refund.png';
+            img = config.aliyun + '/ts-static/wap/ticket-refund.png';
+            color = '#999999';
             break;
         }
       } else {
-        status = '预约成功';
+        status = '待检票';
         type = 1;
-        img = config.aliyun + '/ts-static/ticket-succ.png';
+        img = config.aliyun + '/ts-static/wap/ticket-succ.png';
+        color = '#29ac83';
       }
     }
   }
@@ -196,6 +227,9 @@ const get_status = (refund, check, expire, return_data = 'tip') => {
       break;
     case 'type':
       data = type;
+      break;
+    case 'color':
+      data = color;
       break;
   }
   return data;
@@ -249,8 +283,43 @@ const s_to_hs = (s) => {
   return hous + ':' + min + ':' + s;
 };
 
+// 跳转微信授权，获取code
+function auth(routePath) {
+  let appid = config.appid;
+  let redirectUri = encodeURIComponent(config.vue_base + routePath);
+  location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appid}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect`;
+}
 
+// 获取url参数对象（目前只在登录判断中用到）
+function get_params() {
+  let url = location.search;
+  let params = {};
+  if (url.indexOf('?') !== -1) {
+    let str = url.substr(1);
+    let strs = str.split('&');
+    for (var i = 0; i < strs.length; i++) {
+      let kv = strs[i].split('=');// key 和 value
+      params[kv[0]] = unescape(kv[1]);
+    }
+  }
+  return params
+}
+// 获取最小值数组索引值
+const getMinIndex = (arr) => {
+  let min = arr[0].list_height;
+  //声明了个变量 保存下标值
+  let index = 0;
+  for (var i = 0; i < arr.length; i++) {
+    if (min > arr[i].list_height) {
+      min = arr[i].list_height;
+      index = i;
+    }
+  }
+  return index;
+};
 export default {
+  auth,
+  get_params,
   date_format,    //格式化时间
   ajax,           //请求后台数据
   format_img,     //补全图片路径
@@ -258,5 +327,6 @@ export default {
   get_status,  //检测订单状态
   jump,  //公共跳页方法
   secondsFormat,  //将秒转换成日时分秒
+  getMinIndex,//获取最小值数组索引值
   s_to_hs,  //将秒转换成时分秒
 }

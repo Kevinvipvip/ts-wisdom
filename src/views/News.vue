@@ -1,19 +1,27 @@
 <template>
-  <div class="news page">
+  <div class="news no-footer-page">
+
+    <div class="tab-box">
+      <div class="tab" :class="tab===0?'active':''" @click="tab_click(0)">全部</div>
+      <div class="tab" :class="tab===1?'active':''" @click="tab_click(1)">新闻</div>
+      <div class="tab" :class="tab===2?'active':''" @click="tab_click(2)">公告</div>
+      <div class="tab" :class="tab===3?'active':''" @click="tab_click(3)">展览</div>
+      <div class="tab" :class="tab===4?'active':''" @click="tab_click(4)">活动</div>
+    </div>
 
     <van-list
             v-model="loading"
             :finished="finished"
             finished-text="没有更多了"
             @load="onLoad">
-      <ul>
+      <ul class="com-news-list">
         <li v-for="(item,index) in news" :key="index" @click="to_new_detail(item.id)">
-          <div class="cont">
-            <h3 :class="index===0?'one-line-ellipsis':'two-line-ellipsis'">
-              {{item.title}}</h3>
-            <p><span>{{item.author}}</span><span>{{item.create_time}}</span></p>
-          </div>
           <div class="img" :style="'background-image: url('+item.pic+')'"></div>
+          <div class="cont">
+            <h3 class="two-line-ellipsis">{{item.title}}</h3>
+            <p>{{item.create_time}}</p>
+            <span :class="'bg'+item.type">{{item.type_name}}</span>
+          </div>
         </li>
       </ul>
     </van-list>
@@ -24,6 +32,7 @@
   export default {
     data() {
       return {
+        tab: 0,
         news: [],
 
         page: 0,
@@ -33,9 +42,19 @@
       };
     },
     methods: {
+      // 切换动态分类
+      tab_click(num) {
+        this.tab = parseInt(num);
+        this.page = 0;
+        this.loading = false;
+        this.finished = false;
+        this.count = 0;
+        this.news = [];
+        this.onLoad();
+      },
       onLoad() {
         this.page++;
-        this.getArticleList(this.page, () => {
+        this.getArticleList(this.tab, this.page, () => {
           this.loading = false;
           if (this.news.length >= this.count) {
             this.finished = true
@@ -44,12 +63,13 @@
       },
 
       to_new_detail(id) {
-        this.$router.push({ name: 'new-detail', query: { id: id } });
+        this.$router.push({ name: 'detail_news', query: { id: id } });
       },
 
       //获取新闻资讯列表
-      getArticleList(page, callback) {
+      getArticleList(type, page, callback) {
         let post = {
+          type: type,
           page: page,
           perpage: 10
         };
@@ -71,93 +91,29 @@
 <style lang="scss" scoped>
   .news {
     overflow: hidden;
-    background-color: #ffffff;
 
-    ul {
-      li {
-        display: flex;
-        justify-content: space-between;
-        height: 120px;
-        margin: 24px;
-        border-bottom: 1px solid #f0f0f0;
-        padding: 24px 0;
-        /*box-sizing: border-box;*/
+    .tab-box {
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100px;
+      margin-top: 2px;
 
-        .cont {
-          flex-grow: 1;
-          height: 100%;
-          display: flex;
-          flex-flow: column;
-          justify-content: space-between;
+      .tab {
+        padding: 0 26px;
+        margin: 0 20px;
+        cursor: pointer;
+        background-image: url("../assets/border/tab-left.png"), url("../assets/border/tab-right.png");
+        background-repeat: no-repeat;
+        background-position: left, right;
+        background-size: 12px 25px;
+        font-size: 28px;
+        color: #666666;
 
-          h3 {
-            font-size: 28px;
-            color: #333333;
-            line-height: 34px;
-            font-weight: normal;
-          }
-
-          p {
-            font-size: 24px;
-            color: #999999;
-
-            span {
-              margin-right: 20px;
-            }
-          }
-        }
-
-        .img {
-          margin-left: 28px;
-          flex-shrink: 0;
-          width: 240px;
-          height: 100%;
-          background-position: center;
-          background-repeat: no-repeat;
-          border-radius: 10px;
-          background-size: cover;
-        }
-
-        &:first-child {
-          position: relative;
-          height: 350px;
-          z-index: 1;
-          margin: 0;
-          padding: 0;
-
-          .cont {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            z-index: 3;
-
-            h3 {
-              background-color: rgba(0, 0, 0, 0.6);
-              height: 100%;
-              width: 100%;
-              line-height: 60px;
-              padding: 0 25px;
-              box-sizing: border-box;
-              color: #ffffff;
-            }
-
-            p {
-              display: none;
-            }
-          }
-
-          .img {
-            z-index: 2;
-            position: absolute;
-            margin: 0;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: unset;
-          }
+        &.active {
+          color: #cf903a;
+          background-image: url("../assets/border/tab-left-select.png"), url("../assets/border/tab-right-select.png");
         }
       }
     }

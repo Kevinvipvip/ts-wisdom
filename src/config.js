@@ -15,9 +15,12 @@ let config = {
   url: base + '/',
   api: base + '/api/',
   aliyun: aliyun_base + '/',//阿里云oss链接域名
+  vue_base: base + '/wap/#',
+  appid: 'wxc9564fc80c2dda79',
   tel_reg: /^1([358][0-9]|4[579]|66|7[0135678]|9[89])[0-9]{8}$/,
 
-  notice,//游客须知
+  nav:[],//导航
+  notice,//预约须知
 };
 
 export default config;

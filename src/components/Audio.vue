@@ -2,11 +2,11 @@
   <div class="audio">
     <audio :src="url" id="my_audio" controls ref="audio"></audio>
     <div class="my-audio" :style="'background-color: '+bgColor">
-      <div class="btn-play" @click="play">
-        <div :class="class_name" :style="'border-color: '+color"></div>
+      <div class="btn-play" @click="play" :style="'background-color: '+color">
+        <div :class="class_name" ></div>
       </div>
       <div class="line"><i :style="'width:'+bar_width+'%;background-color:'+color"></i>
-        <div class="circle"></div>
+        <div class="circle" :style="'background-color:'+color"></div>
       </div>
       <p><span>{{time}}</span> / <span>{{total_time}}</span></p>
     </div>
@@ -125,7 +125,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 15px;
+    /*padding: 0 15px;*/
     box-sizing: border-box;
     z-index: 22;
   }
@@ -146,7 +146,7 @@
     width: 0;
     height: 0;
     margin-left: 4px;
-    border-left: 10px solid;
+    border-left: 10px solid #ffffff;
     border-top: 7px solid transparent !important;
     border-bottom: 7px solid transparent !important;
   }
@@ -154,8 +154,8 @@
   .my-audio .btn-play .pause {
     width: 4px;
     height: 12px;
-    border-left: 2px solid;
-    border-right: 2px solid;
+    border-left: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
   }
 
   .my-audio .line {

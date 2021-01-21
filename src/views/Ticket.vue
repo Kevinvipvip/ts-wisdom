@@ -1,12 +1,16 @@
 <template>
   <div class="ticket page">
-    <div class="img"><img :src="banner"/></div>
+    <div class="banner" :style="'background-image: url('+banner+')'">
+      <div class="img"><img :src="logo"/></div>
+    </div>
     <div class="content">
       <div class="btn" @click="fn_booking">门票预约</div>
       <!--<router-link tag="div" to="/booking" class="btn">门票预约</router-link>-->
-      <div class="btn" @click="to_history">历史订单/退票</div>
+      <div class="btn history" @click="to_history">查看订单</div>
       <div class="login-count" v-if="tel">登录账号：{{tel}}</div>
-      <div class="notice">{{notice}}</div>
+      <div class="notice white">
+        <h2>唐山博物馆采取限流预约措施参观，请观众仔细阅读：</h2>{{notice}}
+      </div>
     </div>
 
     <div class="mask" v-if="show_notice">
@@ -24,9 +28,10 @@
   export default {
     data() {
       return {
-        banner: this.config.aliyun + 'ts-static/ticket-banner.jpg',
+        banner: this.config.aliyun + 'ts-static/wap/ticket-banner.jpg',
+        logo: this.config.aliyun + 'ts-static/wap/logo-ticket.png',
 
-        notice: this.config.notice,//游客须知
+        notice: '',//游客须知
         show_notice: false,
         can_click: false,
         clock: 3,
@@ -38,6 +43,7 @@
     mounted() {
       this.tel = localStorage.getItem('tel');
       this.token = localStorage.getItem('token');
+      this.getNotice();
     },
     methods: {
       // // 点击门票预约
@@ -62,9 +68,7 @@
       // 点击历史订单
       to_history() {
         if (this.token) {
-          this.$router.push({
-            name: 'history'
-          })
+          this.$router.push({ name: 'mine', query: { on: 1 } });
         } else {
           this.$router.push({
             name: "login",
@@ -74,49 +78,84 @@
             }
           })
         }
-      }
+      },
+
+      // 获取参观须知
+      getNotice() {
+        this.utils.ajax(this, 'api/aboutUs').then(res => {
+          this.notice = res.notice;
+        });
+      },
     }
   };
 </script>
 
 <style lang="scss" scoped>
   .ticket {
-    img {
-      width: 100%;
-      min-height: 250px;
+    .banner {
+      height: 500px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+
+      .img {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(207, 144, 58, 0.6);
+
+        img {
+          width: 233px;
+          height: 191px;
+        }
+      }
     }
 
     .content {
-      margin: 0 67px;
-      overflow: hidden;
-
       .btn {
-        width: 100%;
-        font-size: 34px;
-        line-height: 78px;
+        font-size: 36px;
+        line-height: 88px;
         color: #ffffff;
         text-align: center;
-        height: 78px;
-        background-color: #b38146;
-        box-shadow: 0 10px 25px 0 rgba(179, 129, 70, 0.35);
+        height: 88px;
+        background-color: #cf903a;
+        box-shadow: 0 5px 10px 0 rgba(179, 129, 70, 0.35);
         border-radius: 10px;
-        margin: 46px auto;
+        margin: 46px 31px;
+        box-sizing: border-box;
+
+        &.history {
+          background-color: #ffffff;
+          border: solid 2px #cf903a;
+          color: #cf903a;
+        }
       }
 
       .login-count {
-        margin-top: 60px;
+        margin: 50px 0;
         font-size: 28px;
         color: #999999;
+        text-align: center;
       }
 
     }
 
     .notice {
-      margin: 67px 0;
+      padding: 57px 24px 47px;
       text-align: justify;
-      font-size: 30px;
-      color: #584e43;
+      font-size: 28px;
+      color: #333333;
       white-space: pre-line;
+      line-height: 51px;
+
+      h2 {
+        font-size: 34px;
+        color: #333333;
+        font-weight: normal;
+        margin-bottom: 30px;
+      }
     }
 
     .mask-notice {

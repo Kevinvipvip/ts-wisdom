@@ -25,15 +25,55 @@
     <!--精品馆藏-->
     <div class="collection white">
       <div class="home-title"><span>精品馆藏</span>
-        <router-link to="/collection" class="btn more">查看更多<img src="../assets/icon-right.png"></router-link>
+        <router-link to="/collection" class="btn home-more">查看更多<img src="../assets/icon-right.png"></router-link>
       </div>
       <div class="collect-swiper-box">
         <swiper class='collect-swiper' :options="collectSwiper" v-if="collection.length>1">
 
           <swiper-slide v-for="(item, index) in collection" :key="index" class="collect-swiper-item">
-            <router-link :to="{path:'/collect-detail',query:{id:item.id}}" tag="div" class="collect-item">
+            <router-link :to="{path:'/detail_collect',query:{id:item.id}}" tag="div" class="collect-item">
               <div class="img" :style="'background-image: url('+item.cover+')'"></div>
               <p class="one-line-ellipsis">{{item.title}}</p>
+            </router-link>
+          </swiper-slide>
+
+        </swiper>
+      </div>
+    </div>
+
+    <!--活动预约-->
+    <div class="activity white" v-if="activity.have_data">
+      <div class="home-title"><span>活动预约</span>
+        <router-link to="/activity" class="btn home-more">查看更多<img src="../assets/icon-right.png"></router-link>
+      </div>
+
+      <router-link tag="div" :to="{path:'/detail_activity',query:{id:activity.id}}" class="activity-cont">
+        <div class="img" :style="'background-image: url('+activity.pic+')'">
+          <div class="tip">{{activity.state}}</div>
+        </div>
+        <h2>
+          <p class="one-line-ellipsis">{{activity.title}}</p>
+          <span>活动时间：{{activity.start_time}} - {{activity.end_time}}</span>
+        </h2>
+      </router-link>
+
+    </div>
+
+    <!--精选展览-->
+    <div class="exhibition white" v-if="exhibition.length>0">
+      <div class="home-title"><span>精选展览</span>
+        <router-link to="/exhibition" class="btn home-more">查看更多<img src="../assets/icon-right.png"></router-link>
+      </div>
+      <div class="exhibition-swiper-box">
+        <swiper class='exhibition-swiper' :options="exhibitionSwiper" v-if="exhibition.length>1">
+
+          <swiper-slide v-for="(item, index) in exhibition" :key="index" class="exhibition-swiper-item">
+            <router-link :to="{path:'/detail_exhibit',query:{id:item.id}}" tag="div" class="exhibition-item">
+              <div class="img" :style="'background-image: url('+item.cover+')'">
+                <div class="exhibition-time">{{item.start_time}} - {{item.end_time}}</div>
+              </div>
+              <p class="one-line-ellipsis">{{item.title}}</p>
+              <span>{{item.tag}}</span>
             </router-link>
           </swiper-slide>
 
@@ -44,10 +84,10 @@
     <!--新闻资讯-->
     <div class="news-box white">
       <div class="home-title"><span>新闻资讯</span>
-        <router-link to="/news" class="btn more">查看更多<img src="../assets/icon-right.png"></router-link>
+        <router-link to="/news" class="btn home-more">查看更多<img src="../assets/icon-right.png"></router-link>
       </div>
       <ul>
-        <router-link :to="{path:'/new-detail',query:{id:item.id}}" tag="li" v-for="(item,index) in news" :key="index">
+        <router-link :to="{path:'/detail_news',query:{id:item.id}}" tag="li" v-for="(item,index) in news" :key="index">
           <div class="cont">
             <h3 :class="index===0?'one-line-ellipsis':'two-line-ellipsis'">
               {{item.title}}</h3>
@@ -61,20 +101,10 @@
     <!--唐博简介-->
     <div class="brief-box white">
       <div class="home-title"><span>唐博简介</span>
-        <!--<router-link to="/about" class="btn more">查看更多<img src="../assets/icon-right.png"></router-link>-->
+        <router-link to="/about" class="btn home-more">查看更多<img src="../assets/icon-right.png"></router-link>
       </div>
       <div class="brief-img"><img :src="about.brief_img" alt=""></div>
       <p>{{about.intro_desc}}</p>
-    </div>
-
-    <!--footer-->
-    <div class="footer">
-      <div class="logo"><img :src="about.logo" alt=""></div>
-      <div class="cont">
-        <p>地址：{{about.address}}</p>
-        <p>官网：<a href="http://www.tsmuseum.com">http://www.tsmuseum.com</a></p>
-        <p>电话：{{about.tel}}</p>
-      </div>
     </div>
   </div>
 </template>
@@ -116,10 +146,21 @@
           }
         },
 
-        collection: [],
+        activity: { have_data: false },//活动预约
+
+        collection: [],//精品馆藏
         //首页馆藏轮播图配置
         collectSwiper: {
+          autoHeight: true,
           slidesPerView: 2.4,
+          spaceBetween: 7
+        },
+
+        exhibition: [],//精选展览
+        //首页精选展览轮播图配置
+        exhibitionSwiper: {
+          autoHeight: true,
+          slidesPerView: 1.8,
           spaceBetween: 7
         },
 
@@ -131,6 +172,8 @@
       _self = this;
       this.getSlides();
       this.getCollectList();
+      this.getActivityList();
+      this.getDisplayDetail();
       this.getArticleList();
       this.getAboutUs();
     },
@@ -147,8 +190,34 @@
         this.utils.ajax(this, 'api/collectList').then(obj => {
           this.utils.aliyun_format(obj.list, 'cover');
           this.collection = obj.list;
+        });
+      },
+      //获取活动预约数据
+      getActivityList() {
+        this.utils.ajax(this, 'activity/activityList').then(obj => {
+          this.utils.aliyun_format(obj.list, 'pic');
+          obj.list[0].have_data = true;
+          obj.list[0].start_time = this.utils.date_format(obj.list[0].start_time, 'yyyy.MM.dd');
+          obj.list[0].end_time = this.utils.date_format(obj.list[0].end_time, 'yyyy.MM.dd');
+          this.activity = obj.list[0];
           // console.log(obj.count);
           // console.log(obj.list);
+        });
+      },
+
+      //获取精品展览列表
+      getDisplayDetail() {
+        this.utils.ajax(this, 'api/displayList').then(obj => {
+          this.utils.aliyun_format(obj.list, 'cover');
+          for (let i = 0; i < obj.list.length; i++) {
+            obj.list[i].start_time = this.utils.date_format(obj.list[i].start_time, 'yyyy.MM.dd');
+            if (obj.list[i].end_time === 0) {
+              obj.list[i].end_time = '∞'
+            } else {
+              obj.list[i].end_time = this.utils.date_format(obj.list[i].end_time, 'yyyy.MM.dd');
+            }
+          }
+          this.exhibition = obj.list;
         });
       },
       //获取新闻资讯列表
@@ -166,9 +235,8 @@
       getAboutUs() {
         this.utils.ajax(this, 'api/aboutUs').then(obj => {
           this.utils.aliyun_format(obj, 'logo');
-          obj.brief_img = this.config.aliyun + 'ts-static/img-brief-home.jpg';
+          obj.brief_img = this.config.aliyun + 'ts-static/wap/img-brief-home.jpg';
           this.about = obj;
-          // console.log(obj)
         })
       }
     }
@@ -198,7 +266,7 @@
         font-size: 26px;
         color: #ffffff;
 
-        &.more {
+        &.home-more {
           background-color: #ffffff;
           color: #d0a34d;
           width: auto;
@@ -268,12 +336,10 @@
       margin-top: 14px;
 
       .collect-swiper-box {
-        height: 250px;
         margin: 0 0 30px 24px;
 
         .collect-swiper {
           width: 100%;
-          height: 100%;
 
           .collect-swiper-item {
             &:last-child {
@@ -297,6 +363,113 @@
                 margin-top: 16px;
                 color: #333333;
                 font-size: 28px;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /*活动预约*/
+    .activity {
+      overflow: hidden;
+      margin-top: 14px;
+
+      .activity-cont {
+        margin: 50px 24px 30px;
+
+        .img {
+          height: 468px;
+          background-position: center;
+          background-size: cover;
+          background-repeat: no-repeat;
+          border-radius: 10px;
+          overflow: hidden;
+          position: relative;
+
+          .tip {
+            position: absolute;
+            right: 12px;
+            top: 14px;
+            padding: 9px 14px;
+            font-size: 20px;
+            color: #ffffff;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.4);
+          }
+        }
+
+        h2 {
+          font-weight: normal;
+          font-size: 28px;
+          color: #333333;
+          margin-top: 20px;
+
+          p {
+            margin-bottom: 16px;
+          }
+
+          span {
+            font-size: 24px;
+            color: #999999;
+          }
+        }
+      }
+    }
+
+    /*精选展览*/
+    .exhibition {
+      overflow: hidden;
+      margin-top: 14px;
+
+      .exhibition-swiper-box {
+        margin: 0 0 30px 24px;
+
+        .exhibition-swiper {
+          width: 100%;
+
+          .exhibition-swiper-item {
+            &:last-child {
+              .exhibition-item {
+                margin-right: 24px;
+              }
+            }
+
+            .exhibition-item {
+              /*height: 100%;*/
+
+              .img {
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                height: 267px;
+                border-radius: 10px;
+                display: flex;
+                align-items: flex-end;
+
+                .exhibition-time {
+                  font-size: 20px;
+                  color: #ffffff;
+                  margin: 0 14px 14px 14px;
+                  padding-left: 21px;
+                  background-image: url("../assets/icons/icon-time.png");
+                  background-size: 16px 16px;
+                  background-repeat: no-repeat;
+                  background-position: left;
+                }
+              }
+
+              p {
+                margin-top: 16px;
+                color: #333333;
+                font-size: 28px;
+              }
+
+              span {
+                display: block;
+                margin-top: 10px;
+                font-size: 24px;
+                color: #999999;
               }
             }
           }
@@ -412,27 +585,6 @@
         line-height: 40px;
         text-indent: 2em;
         text-align: justify;
-      }
-    }
-
-    /*footer*/
-    .footer {
-      height: 300px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      .logo {
-        width: 156px;
-        margin-right: 71px;
-      }
-
-      .cont {
-        p {
-          font-size: 24px;
-          margin: 30px 0;
-          color: #333333;
-        }
       }
     }
   }

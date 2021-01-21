@@ -15,6 +15,13 @@ Vue.prototype.$axios = axios;
 import 'vant/lib/index.css';
 import './vant-import' // 引入需要的vant组件
 
+import Router from 'vue-router'
+
+const routerPush = Router.prototype.push;
+Router.prototype.push = function push(location) {
+  return routerPush.call(this, location).catch(error => error)
+};
+
 // 设置1rem是屏幕的1/10宽
 window.onresize = setHtmlFontSize;
 

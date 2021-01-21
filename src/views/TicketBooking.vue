@@ -1,35 +1,83 @@
 <template>
-  <div class="booking page">
-    <div class="common-title">填写预约信息</div>
-    <div class="paiqi-box">
-      <div class="paiqi">
-        <van-cell title="参观日期" :value="date" @click="show_calender" value-class="date-color" is-link/>
-        <van-calendar
-                color="#b38146"
-                v-model="show"
-                v-if="paiqi.length>0"
-                :min-date="new Date(paiqi[0].use_date)"
-                :max-date="new Date(paiqi[paiqi.length-1].use_date)"
-                @confirm="onConfirm"
-                :formatter="formatter"/>
+  <div class="booking no-footer-page">
+    <div class="input-title" :style="'background-image: url('+title_bg+')'">
+      <div class="tip">
+        <div class="tip-item" :class="operate1?'on':''"><span>1</span>
+          <p>填写信息</p></div>
+        <div class="line"></div>
+        <div class="tip-item" :class="operate2?'on':''"><span>2</span>
+          <p>预约确认</p></div>
+        <div class="line"></div>
+        <div class="tip-item" :class="operate3?'on':''"><span>3</span>
+          <p>预约结果</p></div>
       </div>
     </div>
 
-    <div class="tourist-info">
-      <h3>观众信息</h3>
-      <div class="btn-add" @click="fn_add_tourist" v-if="tourist.length < 6">+添加参观者（限6人)</div>
-      <ul v-if="tourist.length">
-        <li v-for="item in tourist" :key="item.id">
-          <div class="delete" @click="fn_delete(item.idcard)">删除</div>
-          <p>{{item.name}}</p>
-          <p><span>身份证</span>{{item.idcard}}</p>
-          <p>普通观众</p>
-          <p><span>免费参观凭证</span>免费</p>
-        </li>
-      </ul>
+    <div class="one" v-if="tip_on===1">
+      <div class="paiqi-box">
+        <div class="paiqi">
+          <van-cell title="参观日期" :value="date" @click="show_calender" value-class="date-color" is-link/>
+          <van-calendar
+                  color="#b38146"
+                  v-model="show"
+                  v-if="paiqi.length>0"
+                  :min-date="new Date(paiqi[0].use_date)"
+                  :max-date="new Date(paiqi[paiqi.length-1].use_date)"
+                  @confirm="onConfirm"
+                  :formatter="formatter"/>
+        </div>
+      </div>
+
+      <div class="tourist-info">
+        <h3>常用人员</h3>
+        <ul v-if="tourist.length">
+          <li v-for="(item,index) in tourist" :key="item.id" @click="choise_tourist(index)">
+            <p :class="item.checked?'on':''">{{item.name}}</p>
+          </li>
+        </ul>
+        <div class="tip" v-else>未添加常用人员</div>
+        <div class="btn-add" @click="fn_add_tourist"><i></i><span>添加人员</span></div>
+      </div>
+
+      <div class="choice-list" v-if="choice_tourist.length">
+        <h3>已选择</h3>
+        <div class="choice-item" v-for="(item,index) in choice_tourist" :key="'cyr'+index">
+          <div class="delete" @click="delete_choice_tourist(item.idcard)"></div>
+          <p><span>{{item.name}}</span><span>普通门票</span><span>免费</span></p>
+          <p>身份证：{{item.idcard}}</p>
+        </div>
+      </div>
+      <div class="btn-submit" @click="fn_next">下一步</div>
     </div>
-    <div class="btn-submit" @click="submit" v-if="btn_click">确定预约</div>
-    <div class="btn-submit none-click" v-else>确定预约</div>
+    <div class="two" v-if="tip_on===2">
+      <div class="two-date">
+        <p>参观日期</p>
+        <span>{{date}}</span>
+      </div>
+      <div class="choice-list" v-if="choice_tourist.length">
+        <h3>参观人</h3>
+        <div class="choice-item" v-for="(item,index) in choice_tourist" :key="'cyr'+index">
+          <p><span>{{item.name}}</span><span>普通门票</span><span>免费</span></p>
+          <p>身份证：{{item.idcard}}</p>
+        </div>
+      </div>
+      <div class="btn-submit two-btn">
+        <div class="btn1" @click="prev">返回修改</div>
+        <div class="btn2" @click="submit" v-if="btn_click">确定预约</div>
+        <div class="btn2 none-click" v-else>确定预约</div>
+      </div>
+    </div>
+    <div class="three white" v-if="tip_on===3">
+      <div class="icon"><img src="../assets/icons/orders-succ.png" alt=""></div>
+      <div class="p-box">
+        <p>您 【{{succ_date}}】 的参观预约已提交成功</p>
+        <p>请参观当日凭预约时填写的证件到馆参观</p>
+      </div>
+    </div>
+    <div class="btn-three" v-if="tip_on===3">
+      <router-link :to="{path:'/center',query:{tip:1}}">继续预约</router-link>
+      <router-link :to="{path:'/mine',query:{on:1}}">查看订单</router-link>
+    </div>
 
     <!--弹出添加游客-->
     <div class="add-tourist" @click="add_tour = false" :class="add_tour?'show':''">
@@ -76,37 +124,126 @@
   export default {
     data() {
       return {
+        title_bg: this.config.aliyun + 'ts-static/wap/bg-activity-title.png',
+        tip_on: 1,
+        operate1: true,
+        operate2: false,
+        operate3: false,
+
         token: '',
         paiqi: [],
-        date: '',
-        submit_date: '',
+        date: '请选择',//选择成功显示的日期
+        submit_date: '',//提交后台的日期
+        succ_date: '',//预约成功显示的日期
         show: false, add_tour: false,
 
         comfig_type: 1,//是否是点击提交是弹出的日历，是则提示toast
 
         tourist: [],//观众列表
+        choice_tourist: [],//已选择的观众列表
         btn_click: true,
 
         // 添加观众
         name: '',
         IDcard: '',
-        check_img_one: this.config.aliyun + 'ts-static/ticket-checked.png',
-        check_img_two: this.config.aliyun + 'ts-static/ticket-check.png'
+        check_img_one: this.config.aliyun + 'ts-static/wap/ticket-checked.png',
+        check_img_two: this.config.aliyun + 'ts-static/wap/ticket-check.png'
       };
     },
+    // 跳转本页时参数变化后重新调取新闻公告详情数据
+    beforeRouteUpdate(to, from, next) {
+      this.tip_on = parseInt(to.query.tip) || 1;
+      if (to.query.date) {
+        this.date = to.query.date || '请选择';
+        this.submit_date = to.query.date.split(' ')[0] || '';
+        this.succ_date = this.utils.date_format(new Date(this.submit_date), 'MM月dd日 周w');
+      }
+      this.fn_tip();
+      this.token = localStorage.getItem('token');
+      if (this.token) {
+        this.getVisitorList();
+      }
+      next();
+    },
     mounted() {
+      this.tip_on = parseInt(this.$route.query.tip) || 1;
+      if (this.$route.query.date) {
+        this.date = this.$route.query.date || '请选择';
+        this.submit_date = this.$route.query.date.split(' ')[0] || '';
+        this.succ_date = this.utils.date_format(new Date(this.submit_date), 'MM月dd日 周w');
+      }
+      this.fn_tip();
       this.token = localStorage.getItem('token');
       if (this.token) {
         this.getVisitorList();
       }
     },
     methods: {
+      // 点击进行下一步
+      fn_next() {
+        if (this.token) {
+          if (this.date === '请选择') {
+            this.comfig_type = 2;
+            this.get_calender();
+            return;
+          }
+          if (this.choice_tourist.length <= 0) {
+            this.$dialog.alert({
+              message: "请选择或者添加参观者",
+              confirmButtonColor: '#b38146'
+            })
+          } else {
+            this.$router.push({
+              name: 'center',
+              query: { tip: 2, date: this.date, data: encodeURI(JSON.stringify(this.choice_tourist)) }
+            });
+          }
+        } else {
+          this.$router.push({ name: 'login', query: { url: this.$route.path, params: this.$route.query } })
+        }
+      },
+      // 返回修改
+      prev() {
+        this.$router.push({
+          name: 'center',
+          query: { tip: 1, date: this.date, data: encodeURI(JSON.stringify(this.choice_tourist)) }
+        });
+      },
+      // 点击选择常用人员
+      choise_tourist(index) {
+        this.tourist[index].checked = !this.tourist[index].checked;
+        this.fn_choice_tourist();
+      },
+
+      // 点击删除已选人员
+      delete_choice_tourist(card) {
+        this.fn_choice_tourist(card)
+      },
+      fn_tip() {
+        switch (this.tip_on) {
+          case 1:
+            this.choice_tourist = [];
+            this.operate1 = true;
+            this.operate2 = false;
+            this.operate3 = false;
+            break;
+          case 2:
+            this.operate1 = true;
+            this.operate2 = true;
+            this.operate3 = false;
+            break;
+          case 3:
+            this.operate1 = true;
+            this.operate2 = true;
+            this.operate3 = true;
+            break;
+        }
+      },
       // 点击参观日期
       show_calender() {
         this.comfig_type = 1;
         this.get_calender()
       },
-
 
       // 点击添加参观者
       fn_add_tourist() {
@@ -123,6 +260,30 @@
         }
       },
 
+      // 不传参数为选择常用人员；传card参数为删除已选择或者已添加的人员
+      fn_choice_tourist(card) {
+        let arr = this.tourist, choice_arr = [];
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i].checked) {
+            if (arr[i].idcard === card) {
+              arr[i].checked = false;
+            } else {
+              if (choice_arr.length < 6) {
+                choice_arr.push(arr[i]);
+              } else {
+                this.$dialog.alert({
+                  message: '一次只能为6名游客预约',
+                  confirmButtonColor: '#b38146'
+                }).then(() => {
+                  arr[i].checked = false;
+                });
+              }
+            }
+          }
+        }
+        this.choice_tourist = choice_arr;
+        this.tourist = arr;
+      },
 
       // 点击重置按钮
       fn_reset() {
@@ -140,115 +301,118 @@
             name: this.name,
             idcard: this.IDcard
           };
-          this.utils.ajax(this, 'ticket/addVisitor', post).then(() => {
-            this.$dialog.alert({
-              message: '添加成功',
-              confirmButtonColor: '#b38146'
-            }).then(() => {
-              this.name = '';
-              this.IDcard = '';
-              this.add_tour = false;
-              this.getVisitorList(length => {
-                if (length === 6) {
-                  this.$toast('可预约人数已达上限');
+          this.utils.ajax(this, 'ticket2/addVisitor', post).then(res => {
+            if (res) {
+              this.$dialog.alert({
+                message: '添加成功',
+                confirmButtonColor: '#b38146'
+              }).then(() => {
+                this.name = '';
+                this.IDcard = '';
+                this.add_tour = false;
+                post.id = parseInt(res);
+                if (this.choice_tourist.length < 6) {
+                  post.checked = true;
+                  this.choice_tourist.push(post);
+                } else {
+                  post.checked = false;
+                  this.$dialog.alert({
+                    message: '一次只能为6名游客预约，此次添加只添加常用人员，未选中',
+                    confirmButtonColor: '#b38146'
+                  });
                 }
+                this.tourist.push(post);
               });
-            });
+            }
           })
         }
       },
       // 点击删除按钮
-      fn_delete(IDcard) {
-        this.utils.ajax(this, 'ticket/visitorDelete', { idcard: IDcard }).then(() => {
-          this.$dialog.alert({
-            message: '已删除',
-            confirmButtonColor: '#b38146'
-          }).then(() => {
-            this.getVisitorList();
-          });
-        })
-      },
-      getVisitorList(complete) {
-        this.utils.ajax(this, 'ticket/visitorList').then(list => {
-          this.tourist = list;
-          if (complete) {
-            complete(list.length);
+      // fn_delete(IDcard) {
+      //   this.utils.ajax(this, 'ticket2/visitorDelete', { idcard: IDcard }).then(() => {
+      //     this.$dialog.alert({
+      //       message: '已删除',
+      //       confirmButtonColor: '#b38146'
+      //     }).then(() => {
+      //       this.getVisitorList();
+      //     });
+      //   })
+      // },
+      getVisitorList() {
+        this.utils.ajax(this, 'ticket2/visitorList').then(list => {
+          for (let i = 0; i < list.length; i++) {
+            list[i].checked = false;
           }
-        })
+          this.tourist = list;
+        }).then(() => {
+          if (this.$route.query.data) {
+            this.choice_tourist = JSON.parse(decodeURI(this.$route.query.data));
+            for (let i = 0; i < this.tourist.length; i++) {
+              for (let j = 0; j < this.choice_tourist.length; j++) {
+                if (this.tourist[i].idcard === this.choice_tourist[j].idcard) {
+                  this.tourist[i].checked = true;
+                }
+              }
+            }
+          }
+        });
       },
-
+      // 获取提交的参观人id
+      submitVisitor() {
+        let arr = [];
+        for (let i = 0; i < this.choice_tourist.length; i++) {
+          arr.push(this.choice_tourist[i].id);
+        }
+        return arr.join(',');
+      },
       // 点击预约按钮
       submit() {
-        if (this.token) {
-          if (!this.date) {
-            this.comfig_type = 2;
-            this.get_calender();
-            return;
-          }
-          if (this.tourist.length <= 0) {
-            this.$dialog.alert({
-              message: "请添加参观者",
-              confirmButtonColor: '#b38146'
-            })
-          } else {
-            if (this.btn_click) {
-              this.btn_click = false;
-              let data = {
-                use_date: this.submit_date,
-              };
-              this.$dialog.confirm({
-                message: '您总共预约了' + this.tourist.length + '个人的门票',
+        if (this.btn_click) {
+          this.btn_click = false;
+          let data = {
+            use_date: this.submit_date,
+            visitor_ids: this.submitVisitor()
+          };
+          this.$dialog.confirm({
+            message: '您总共预约了' + this.choice_tourist.length + '个人的门票',
+            confirmButtonColor: '#b38146'
+          }).then(() => {
+            this.utils.ajax(this, 'ticket2/purchase', data, [46, 55, 56]).then(() => {
+              this.btn_click = true;
+              this.$router.push({ name: 'center', query: { tip: 3, date: this.date } });
+              // this.$dialog.confirm({
+              //   message: "预约成功",
+              //   confirmButtonText: "查看订单",
+              //   confirmButtonColor: '#b38146',
+              //   cancelButtonText: "继续预约",
+              //   cancelButtonColor: '#b38146'
+              // }).then(() => {
+              //   this.btn_click = true;
+              //   this.$router.push({ name: 'mine', query: { on: 1 } });
+              // }).catch(() => {
+              //   this.btn_click = true;
+              //   this.date = '';
+              //   this.submit_date = '';
+              //   this.tourist = [];
+              // });
+            }).catch(err => {
+              let text;
+              if (this.choice_tourist.length > 5) {
+                text = err.message;
+              } else {
+                text = err.data;
+              }
+              this.$dialog.alert({
+                message: text,
                 confirmButtonColor: '#b38146'
               }).then(() => {
-                this.utils.ajax(this, 'ticket/purchase', data, [46, 55, 56]).then(() => {
-                  this.btn_click = true;
-                  this.$dialog.confirm({
-                    message: "预约成功",
-                    confirmButtonText: "查看订单",
-                    confirmButtonColor: '#b38146',
-                    cancelButtonText: "继续预约",
-                    cancelButtonColor: '#b38146'
-                  }).then(() => {
-                    this.btn_click = true;
-                    this.$router.push({
-                      name: 'history'
-                    })
-                  }).catch(() => {
-                    this.btn_click = true;
-                    this.date = '';
-                    this.submit_date = '';
-                    this.tourist = [];
-                  });
-                }).catch(err => {
-                  console.log(err);
-                  let text;
-                  if (this.tourist.length > 5) {
-                    text = err.message;
-                  } else {
-                    text = err.data;
-                  }
-                  this.$dialog.alert({
-                    message: text,
-                    confirmButtonColor: '#b38146'
-                  }).then(() => {
-                    this.btn_click = true
-                  });
-                });
-              }).catch(() => {
-                this.btn_click = true;
+                this.btn_click = true
               });
-            }
-          }
-        } else {
-          this.$router.push({
-            name: 'login',
-            query: {
-              url: this.$route.path,
-              params: this.$route.query
-            }
-          })
+            });
+          }).catch(() => {
+            this.btn_click = true;
+          });
         }
-
       },
       formatDate(date) {
         return `${date.getFullYear()}-${(date.getMonth() + 1).toString()[1] ? date.getMonth() + 1 : '0' + (date.getMonth() + 1)}-${date.getDate().toString()[1] ? date.getDate() : '0' + date.getDate()}`
@@ -259,7 +423,7 @@
         this.date = this.formatDate(date) + ' 9:00-16:00';
         this.submit_date = this.formatDate(date);
         if (this.comfig_type === 2) {
-          this.$toast('日期选择成功，再次点击购买');
+          this.$toast('日期选择成功，再次点击进入下一步');
         }
       },
       formatter(day) {
@@ -288,7 +452,7 @@
         return day;
       },
       get_calender() {
-        this.utils.ajax(this, 'ticket/paiqiList').then((res) => {
+        this.utils.ajax(this, 'ticket2/paiqiList').then((res) => {
           // console.log(res)
           if (res.length > 0) {
             this.paiqi = res;
@@ -308,23 +472,26 @@
 <style lang="scss" scoped>
   .booking {
     .paiqi-box {
-      margin: 30px 24px;
+      height: 100px;
+      margin: 14px 0;
+      display: flex;
+      align-items: center;
       background-color: #ffffff;
-      border-radius: 10px;
       overflow: hidden;
       box-shadow: 0 1px 4px 0 rgba(179, 129, 70, 0.3);
     }
 
     .paiqi-box .paiqi {
-      margin: 15px 25px;
+      width: 100%;
+      margin: 0 26px;
 
       .van-cell--clickable:active {
         background-color: transparent;
       }
 
       .van-cell {
-        font-size: 30px;
-        color: #000;
+        font-size: 34px;
+        color: #333333;
 
         .van-cell__title {
           flex-shrink: 0;
@@ -333,79 +500,201 @@
         }
 
         .date-color {
-          text-align: left;
-          font-size: 30px;
-          color: #b38146;
+          text-align: right;
+          font-size: 24px;
+          color: #d0a34d;
         }
 
         .van-cell__right-icon {
-          color: #b38146;
+          color: #d0a34d;
+          font-size: 24px;
         }
 
         &:not(:last-child)::after {
           border: none;
         }
       }
-
     }
 
     .tourist-info {
-      padding: 24px;
+      overflow: hidden;
       box-sizing: border-box;
-      margin: 30px 24px 110px;
       background-color: #ffffff;
       box-shadow: 0 1px 4px 0 rgba(179, 129, 70, 0.3);
 
       h3 {
-        font-size: 30px;
-        color: #000;
+        margin: 40px 26px 0;
+        font-size: 32px;
+        color: #333333;
         font-weight: normal;
       }
 
-      .btn-add {
-        margin: 27px 0;
-        height: 70px;
-        border-radius: 35px;
-        border: dashed 2px #b38146;
-        font-size: 24px;
-        color: #b38146;
-        line-height: 70px;
-        text-align: center;
-      }
+      ul, .tip {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 60px 26px 40px;
+        font-size: 28px;
+        color: #666666;
 
-      ul {
         li {
-          background-color: #fcfaf7;
-          padding: 29px 23px;
-          box-sizing: border-box;
-          position: relative;
-          margin-top: 27px;
-
-          .delete {
-            position: absolute;
-            top: 29px;
-            right: 23px;
-            font-size: 28px;
-            color: #ff3f3f;
-          }
+          margin-right: 60px;
+          margin-bottom: 24px;
 
           p {
-            margin-top: 23px;
             font-size: 28px;
             color: #333333;
+            padding-left: 49px;
+            background-image: url("../assets/icons/checkBox.png");
+            background-size: 34px 34px;
+            background-position: left;
+            background-repeat: no-repeat;
 
-            span {
-              margin-right: 25px;
+            &.on {
+              background-image: url("../assets/icons/checkBox-checked.png");
             }
+          }
+        }
+      }
 
-            &:first-child {
-              margin-top: 0;
-            }
+      .btn-add {
+        height: 80px;
+        background-color: #cf903a;
+        font-size: 30px;
+        color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        i {
+          display: block;
+          width: 34px;
+          height: 34px;
+          margin-right: 10px;
+          background-image: url("../assets/icons/add.png");
+          background-repeat: no-repeat;
+          background-position: center;
+          background-size: 100% 100%;
+        }
+      }
+    }
+
+    .choice-list {
+      background-color: #ffffff;
+      margin-top: 14px;
+      margin-bottom: 124px;
+      padding: 40px 24px;
+
+      h3 {
+        font-size: 32px;
+        color: #333333;
+        font-weight: normal;
+      }
+
+      .choice-item {
+        margin-top: 24px;
+        border-radius: 10px;
+        border: solid 1px #cf903a;
+        padding: 30px;
+        position: relative;
+
+        .delete {
+          position: absolute;
+          right: 30px;
+          top: 30px;
+          width: 29px;
+          height: 34px;
+          background-image: url("../assets/icons/delete.png");
+          background-repeat: no-repeat;
+          background-size: 100% 100%;
+          background-position: center;
+        }
+
+        p {
+          font-size: 26px;
+          color: #333333;
+          display: flex;
+          align-items: center;
+          line-height: 51px;
+
+          span {
+            display: block;
+            margin-right: 25px;
           }
         }
       }
     }
 
+    .two-date {
+      display: flex;
+      font-size: 34px;
+      align-items: center;
+      justify-content: space-between;
+      height: 100px;
+      background-color: #ffffff;
+      padding: 0 26px;
+      margin-top: 14px;
+
+      p {
+        color: #333333;
+        font-weight: bold;
+      }
+
+      span {
+        color: #d0a34d;
+      }
+    }
+
+    .three {
+      margin-top: 14px;
+      display: flex;
+      flex-flow: column;
+      align-items: center;
+      overflow: hidden;
+
+      .icon {
+        margin: 69px 0 37px;
+        width: 70px;
+        height: 70px;
+      }
+
+      .p-box {
+        margin-bottom: 69px;
+
+        p {
+          font-size: 28px;
+          color: #666666;
+          text-align: center;
+          line-height: 42px;
+        }
+      }
+    }
+
+    .btn-three {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 120px;
+
+      a {
+        margin: 0 35px;
+        display: block;
+        width: 260px;
+        height: 80px;
+        background-color: #cf903a;
+        font-size: 28px;
+        color: #ffffff;
+        text-align: center;
+        line-height: 80px;
+        border-radius: 10px;
+        box-sizing: border-box;
+
+        &:first-child {
+          color: #cf903a;
+          background-color: #ffffff;
+          border: 2px solid #cf903a;
+        }
+      }
+    }
 
     .add-tourist {
       position: fixed;
@@ -531,14 +820,29 @@
       left: 0;
       bottom: 0;
       width: 100%;
-      height: 98px;
+      height: 100px;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 28px;
+      font-size: 34px;
       color: #ffffff;
-      background-color: #b38146;
-      z-index: 2000;
+      background-color: #cf903a;
+      z-index: 33;
+
+      .btn1, .btn2 {
+        width: 50%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .btn1 {
+        color: #cf903a;
+        background-color: #ffffff;
+        border: 2px solid #cf903a;
+        box-sizing: border-box;
+      }
     }
   }
 </style>

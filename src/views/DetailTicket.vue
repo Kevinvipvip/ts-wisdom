@@ -1,42 +1,42 @@
 <template>
-  <div class="ticket-detail page">
-    <div class="common-title">订单详情</div>
+  <div class="ticket-detail no-footer-page">
+    <div class="detail-title" :style="'background-image: url('+title_bg+')'">
+      <h2>{{detail.status_tip}}</h2>
+    </div>
     <div class="detail" v-if="detail.list">
-      <div class="status">{{detail.status}}</div>
-      <p>预约编号：{{detail.pay_order_sn}}</p>
-      <p>预约时间：{{detail.create_time}}</p>
-      <p>参观日期：{{detail.use_date}}</p>
-      <p>总金额：￥{{detail.total_price}}</p>
+      <p><span>预约编号</span>：{{detail.pay_order_sn}}</p>
+      <p><span>预约时间</span>：{{detail.create_time}}</p>
+      <p><span>参观日期</span>：{{detail.use_date}}</p>
+      <p><span>总金额</span>：{{detail.total_price==='0.00'?'免费':'￥'+detail.total_price}}</p>
     </div>
     <ul>
-      <li v-for="(item,index) in detail.list" :key="item.id" @click="fn_choose_checkbox(index)">
-        <div class="cont" :style="item.status_type===2?'opacity: 0.4;':''">
-          <p>{{item.name}}</p>
-          <p>身份证：{{item.idcard}}</p>
-          <div class="has-checkbox">
-            <i v-if="item.status_type===1" :class="show_checkbox?'show':''">
-              <img :src="item.is_checked?inactiveIcon:''"/>
-            </i>
-            <div class="p-box">
-              <p>免费参观凭证</p>
-              <p v-if="item.check_time">核销时间：{{item.check_time}}</p>
-              <p class="status">{{item.status}}</p>
-            </div>
+      <li v-for="(item,index) in detail.list" :key="item.id">
+        <div class="cont" @click="fn_choose_checkbox(index)">
+          <div class="icon">
+            <img :src="item.is_checked?require('../assets/icons/checkBox-checked1.png'):require('../assets/icons/checkBox.png')">
+          </div>
+          <div>
+            <p>姓名：{{item.name}}</p>
+            <p>门票类型：普通门票</p>
+            <p>证件类型：身份证</p>
+            <p>证件编号：{{item.idcard}}</p>
+            <p>票价：{{detail.total_price==='0.00'?'免费':'￥'+detail.total_price}}</p>
           </div>
         </div>
-        <!--<span>0</span>-->
-        <span v-if="item.status_type===1" @click="createCode(index)"><img src="../assets/icon-check-code.png"/></span>
+        <span v-if="item.status_type===1" @click="createCode(index)">查看入馆二维码</span>
+        <!--<span v-else style="background-color: #cf903a">{{item.status}}</span>-->
       </li>
     </ul>
     <div class="fill-bottom"></div>
-    <div class="btn" v-if="detail.btn_type === 1">
-      <p @click="show_checkbox = !show_checkbox" v-if="detail.refund_btn">退票</p>
-      <p v-else class="none-click">退票</p>
-    </div>
+    <!--<div class="btn" v-if="detail.btn_type === 1">-->
+    <!--<p @click="show_checkbox = !show_checkbox" v-if="detail.refund_btn">退票</p>-->
+    <!--<p v-else class="none-click">退票</p>-->
+    <!--</div>-->
 
-    <div class="btn-refund" :class="last_refund?'show':''">
-      <span>退款总计：￥{{refund_price}}</span>
-      <p @click="fn_refund">确认退票</p>
+    <div class="btn-refund">
+      <!--<span>退款总计：￥{{refund_price}}</span>-->
+      <p v-if="detail.refund_btn" @click="fn_refund">取消预约</p>
+      <p v-else class="none-click">取消预约</p>
     </div>
     <div class="qr-code" @click="close_qrcode" :class="show_qrcode?'show':''">
       <div class="code-box">
@@ -58,7 +58,8 @@
   export default {
     data() {
       return {
-        inactiveIcon: this.config.aliyun + 'ts-static/ticket-checked.png',
+        title_bg: this.config.aliyun + 'ts-static/wap/bg-activity-title.png',
+        inactiveIcon: this.config.aliyun + 'ts-static/wap/ticket-checked.png',
         id: 0,
         detail: {},
 
@@ -68,7 +69,7 @@
 
         refund_price: '0.00',//退款总计
         show_qrcode: false,//显示二维码
-        code_bg: this.config.aliyun + 'ts-static/ticket-code-bg.png',
+        code_bg: this.config.aliyun + 'ts-static/wap/ticket-code-bg.png',
 
         clock: 0,
         ckeck_clock: 0,//一分钟以内可重复扫码
@@ -109,7 +110,7 @@
       },
       // 选择要退的票
       fn_choose_checkbox(index) {
-        if (this.show_checkbox) {
+        if (this.detail.refund_btn) {
           if (this.detail.list[index].refund !== 1) {
             let arr = [];
             this.detail.list[index].is_checked = !this.detail.list[index].is_checked;
@@ -124,7 +125,12 @@
             } else {
               this.last_refund = false;
             }
-            // console.log(arr);
+          }
+        } else {
+          if (this.detail.list[index].status_type === 1) {
+            this.$dialog.alert({ message: '已超过可退票时间', confirmButtonColor: '#b38146' });
+          } else {
+            this.$dialog.alert({ message: this.detail.list[index].status, confirmButtonColor: '#b38146' });
           }
         }
       },
@@ -141,7 +147,7 @@
       // 获取订单详情
       getOrderDetail() {
         this.utils.ajax(this, 'my/ticketOrderDetail', { order_id: this.id }).then((detail) => {
-          detail.status = this.utils.get_status(detail.refund, detail.check, detail.expire);
+          detail.status_tip = this.utils.get_status(detail.refund, detail.check, detail.expire);
           detail.create_time = this.utils.date_format(detail.create_time, 'yyyy-MM-dd hh:mm:ss');
           detail.btn_type = this.utils.get_status(detail.refund, detail.check, detail.expire, 'type');
           for (let i = 0; i < detail.list.length; i++) {
@@ -232,95 +238,82 @@
 
 <style lang="scss" scoped>
   .ticket-detail {
+    .detail-title {
+      height: 200px;
+      background-repeat: no-repeat;
+      background-position: bottom;
+      background-size: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      h2 {
+        color: #ffffff;
+        font-size: 34px;
+        font-weight: normal;
+      }
+    }
+
     .detail {
-      margin: 30px 24px;
       background-color: #ffffff;
       box-shadow: 0 1px 4px 0 rgba(179, 129, 70, 0.3);
       padding: 34px 24px;
       box-sizing: border-box;
-      position: relative;
-
-      .status {
-        font-size: 24px;
-        color: #b38146;
-        position: absolute;
-        top: 30px;
-        right: 24px;
-      }
 
       p {
         font-size: 24px;
         color: #333333;
         line-height: 45px;
+        display: flex;
+        align-items: center;
+
+        span {
+          display: block;
+          width: 100px;
+          text-align-last: justify;
+        }
       }
     }
 
     ul {
-      margin: 24px;
+      margin-top: 14px;
 
       li {
         background-color: #ffffff;
         margin-bottom: 24px;
-        box-shadow: 0 1px 4px 0 rgba(179, 129, 70, 0.3);
-        padding: 34px 24px;
-        box-sizing: border-box;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        /*padding: 34px 24px;*/
+        /*box-sizing: border-box;*/
+        overflow: hidden;
+
+        .cont {
+          margin: 30px;
+          display: flex;
+          align-items: center;
+
+          .icon {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            margin-right: 46px;
+          }
+
+          p {
+            font-size: 26px;
+            color: #333333;
+            margin-bottom: 10px;
+            line-height: 39px;
+          }
+        }
 
         span {
-          width: 80px;
+          width: 100%;
           height: 80px;
-          /*box-sizing: border-box;*/
-          /*padding: 15px;*/
           display: flex;
           justify-content: center;
           align-items: center;
-          background-color: #b38146;
-          box-shadow: 0 10px 25px 0 rgba(179, 129, 70, 0.35);
-          border-radius: 10px;
-
-          img {
-            width: 80%;
-          }
-        }
-
-        p {
-          font-size: 24px;
-          color: #333333;
-          line-height: 45px;
-        }
-
-        .has-checkbox {
-          display: flex;
-          align-items: center;
-
-          i {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 0;
-            height: 24px;
-            transition: 0.5s;
-
-            img {
-              width: 80%;
-            }
-
-            &.show {
-              margin-right: 15px;
-              border: 2px solid #b38146;
-              width: 24px;
-            }
-          }
-
-          .p-box {
-
-            .status {
-              color: #b38146;
-              margin-top: 20px;
-            }
-          }
+          background-color: #29ac83;
+          color: #ffffff;
+          font-size: 26px;
         }
       }
     }
@@ -354,120 +347,38 @@
 
     .btn-refund {
       position: fixed;
-      background-color: #ffffff;
+      background-color: #cf903a;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      height: 115px;
+      justify-content: center;
+      height: 100px;
       left: 0;
       right: 0;
-      bottom: -114px;
+      //bottom: -114px;
       z-index: 9;
       transition: 0.2s;
 
-      &.show {
-        bottom: 0;
-      }
+      /*&.show {*/
+      bottom: 0;
+      /*}*/
 
-      span {
-        font-size: 28px;
-        color: #333333;
-        margin-left: 24px;
-      }
+      /*span {*/
+      /*font-size: 28px;*/
+      /*color: #333333;*/
+      /*margin-left: 24px;*/
+      /*}*/
 
       p {
-        width: 30%;
+        width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #b38146;
         height: 100%;
-        font-size: 28px;
+        font-size: 34px;
         color: #ffffff;
         box-sizing: border-box;
       }
     }
 
-    .qr-code {
-      position: fixed;
-      transition: 200ms;
-      overflow: hidden;
-      top: 100%;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 99999;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      &.show {
-        top: 0;
-      }
-
-      .code-box {
-        width: calc(100% - 120px);
-        position: relative;
-
-        .qrcode {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-
-          .code {
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-          }
-        }
-
-        .tip-bg {
-          background-color: rgb(179, 129, 70);
-          height: 120px;
-          border-radius: 20px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          position: relative;
-
-          &:before {
-            content: '';
-            display: block;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: rgb(51, 50, 49);
-            top: -13px;
-            left: -10px;
-            position: absolute;
-          }
-
-          &:after {
-            content: '';
-            display: block;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: rgb(51, 50, 49);
-            top: -13px;
-            right: -10px;
-            position: absolute;
-          }
-
-          p {
-            color: #ffffff;
-            font-size: 35px;
-          }
-        }
-      }
-    }
   }
 </style>

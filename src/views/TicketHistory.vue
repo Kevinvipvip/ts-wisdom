@@ -5,7 +5,7 @@
       <router-link to="/booking">立即预约</router-link>
     </div>
     <ul v-else>
-      <router-link tag="li" :to="{path:'/ticket_detail',query:{id:item.id}}" v-for="item in history" :key="item.id">
+      <router-link tag="li" :to="{path:'/detail_ticket',query:{id:item.id}}" v-for="item in history" :key="item.id">
         <div class="item">
           <div class="img"><img :src="item.status_pic" alt=""></div>
           <div class="item-right">
@@ -30,7 +30,7 @@
   export default {
     data() {
       return {
-        right: this.config.aliyun + 'ts-static/ticket-right.png',
+        right: this.config.aliyun + 'ts-static/wap/ticket-right.png',
         count: 0,
         history: []
       };
