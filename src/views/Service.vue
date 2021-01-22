@@ -45,7 +45,7 @@
           <span>唐山市路北区龙泽南路22号</span>
         </div>
         <div class="btn-navigation">
-          <a href="http://map.baidu.com/mobile/" class="map">导航</a>
+          <router-link to="/bd_map" class="map">导航</router-link>
         </div>
       </div>
     </div>

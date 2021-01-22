@@ -2,7 +2,7 @@
 node_modules
 /dist
 /wap
-
+secret.js
 
 # local env files
 .env.local

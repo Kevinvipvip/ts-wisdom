@@ -176,6 +176,10 @@ const routes = [
     path: '/web_map',
     name: 'web_map',
     component: () => import('../views/WebMap.vue')//网站地图
+  }, {
+    path: '/bd_map',
+    name: 'bd_map',
+    component: () => import('../views/BaiduMap.vue')//百度地图
   }
 ];
 

@@ -4,7 +4,12 @@ import router from './router'
 import config from './config'
 import utils from './utils'
 import axios from 'axios'
+// 隐秘文件挂载全局使用
+import secret from './secret'
+// 百度地图
+import BaiduMap from 'vue-baidu-map';
 
+Vue.use(BaiduMap, { ak: secret.baidu_map_ak });
 Vue.config.productionTip = false;
 
 Vue.prototype.config = config;
