@@ -91,7 +91,10 @@
           <div class="cont">
             <h3 :class="index===0?'one-line-ellipsis':'two-line-ellipsis'">
               {{item.title}}</h3>
-            <p><span>{{item.author}}</span><span>{{item.create_time}}</span></p>
+            <p>
+              <span>{{item.create_time}}</span>
+              <span class="type" :class="'bg'+item.type">{{item.type_name}}</span>
+            </p>
           </div>
           <div class="img" :style="'background-image: url('+item.pic+')'"></div>
         </router-link>
@@ -488,7 +491,7 @@
         li {
           display: flex;
           justify-content: space-between;
-          height: 120px;
+          height: 160px;
           margin-bottom: 24px;
 
           .cont {
@@ -508,9 +511,34 @@
             p {
               font-size: 24px;
               color: #999999;
+              display: flex;
+              flex-flow: column;
 
               span {
-                margin-right: 20px;
+                display: block;
+                margin-top: 18px;
+
+                &.type {
+                  background-color: #cf903a;
+                  color: #ffffff;
+                  width: 75px;
+                  height: 32px;
+                  text-align: center;
+                  line-height: 32px;
+                  border-radius: 4px;
+
+                  &.bg2 {
+                    background-color: #a5a59f;
+                  }
+
+                  &.bg3 {
+                    background-color: #29ac83;
+                  }
+
+                  &.bg4 {
+                    background-color: #f56f40;
+                  }
+                }
               }
             }
           }
