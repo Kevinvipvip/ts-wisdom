@@ -3,9 +3,12 @@
     <div class="banner"><img :src="detail.pic"/></div>
     <div class="attr white">
       <h3>{{detail.title}}</h3>
-      <p>面向人群：<span>{{detail.object}}</span></p>
-      <p>活动名额：<span>{{detail.num}}人</span></p>
+      <p v-if="detail.limit_age===1">面向人群：<span>{{detail.min_age}} ~ {{detail.max_age}}岁</span></p>
+      <p v-else>面向人群：<span>年龄不限</span></p>
+      <p>活动名额：<span>{{detail.limit_num}}人</span></p>
+      <p>剩余名额：<span>{{detail.num}}人</span></p>
       <p>活动时间：<span>{{detail.start_time}} ~ {{detail.end_time}}</span></p>
+      <p>预约时间：<span>{{detail.start_order_time}} ~ {{detail.end_order_time}}</span></p>
       <p>活动地点：<span>{{detail.address}}</span></p>
       <p>参与费用：
         <span v-if="detail.price==='0.00'" style="color:#33b089;">免费</span>
@@ -40,6 +43,8 @@
           this.utils.aliyun_format(res);
           res.start_time = this.utils.date_format(res.start_time, 'yyyy/MM/dd周w hh:mm');
           res.end_time = this.utils.date_format(res.end_time, 'yyyy/MM/dd周w hh:mm');
+          res.start_order_time = this.utils.date_format(res.start_order_time, 'yyyy/MM/dd hh:mm:ss');
+          res.end_order_time = this.utils.date_format(res.end_order_time, 'yyyy/MM/dd hh:mm:ss');
           this.detail = res;
         });
       }

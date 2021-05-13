@@ -11,7 +11,7 @@
           <div class="img" :style="'background-image: url('+item.cover+')'">
             <div class="tag" :class="'bg'+item.cate_id">{{item.tag}}</div>
           </div>
-          <h3 class="one-line-ellipsis">{{item.title}}{{item.title}}</h3>
+          <h3 class="one-line-ellipsis">{{item.title}}</h3>
         </router-link>
       </ul>
     </van-list>

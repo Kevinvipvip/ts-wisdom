@@ -11,7 +11,7 @@
       <h1>展览详情</h1>
       <p>{{detail.desc}}</p>
     </div>
-    <div class="exhibits white">
+    <div class="exhibits white" v-if="detail.collect_list.length>1">
       <h1>精彩展品</h1>
       <div class="exhibition-swiper-box">
         <swiper class='exhibition-swiper' :options="exhibitionSwiper" v-if="detail.collect_list.length>1">

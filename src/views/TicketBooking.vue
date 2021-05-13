@@ -28,6 +28,22 @@
         </div>
       </div>
 
+      <div class="ticket-interval white" v-if="show_interval">
+        <h3>入馆时段</h3>
+        <ul>
+          <li v-for="(item,index) in paiqi_detail" :key="'paiqi-detail'+index" :class="interval_id===item.id?'on':''">
+            <p v-if="parseInt(item.surplus)===0">
+              <span>{{item.start_time}} - {{item.end_time}}</span>
+              <span>余{{item.surplus}}</span>
+            </p>
+            <p v-else @click="choice_interval(item.id)">
+              <span>{{item.start_time}} - {{item.end_time}}</span>
+              <span>余{{item.surplus}}</span>
+            </p>
+          </li>
+        </ul>
+      </div>
+
       <div class="tourist-info">
         <h3>常用人员</h3>
         <ul v-if="tourist.length">
@@ -52,7 +68,7 @@
     <div class="two" v-if="tip_on===2">
       <div class="two-date">
         <p>参观日期</p>
-        <span>{{date}}</span>
+        <span>{{two_date}}</span>
       </div>
       <div class="choice-list" v-if="choice_tourist.length">
         <h3>参观人</h3>
@@ -70,7 +86,7 @@
     <div class="three white" v-if="tip_on===3">
       <div class="icon"><img src="../assets/icons/orders-succ.png" alt=""></div>
       <div class="p-box">
-        <p>您 【{{succ_date}}】 的参观预约已提交成功</p>
+        <p>您 【{{succ_date}}】 的参观门票已预约成功</p>
         <p>请参观当日凭预约时填写的证件到馆参观</p>
       </div>
     </div>
@@ -133,9 +149,13 @@
         token: '',
         paiqi: [],
         date: '请选择',//选择成功显示的日期
-        submit_date: '',//提交后台的日期
+        two_date: '',//第二部展示的日期
         succ_date: '',//预约成功显示的日期
         show: false, add_tour: false,
+
+        paiqi_detail: [],//排期详情
+        show_interval: false,//是否显示时段
+        interval_id: 0,//选择的时段id
 
         comfig_type: 1,//是否是点击提交是弹出的日历，是则提示toast
 
@@ -150,13 +170,26 @@
         check_img_two: this.config.aliyun + 'ts-static/wap/ticket-check.png'
       };
     },
+    watch: {
+      'paiqi_detail.length': {
+        handler(newValue) {
+          if (newValue === 0) {
+            this.show_interval = false;
+          } else {
+            this.show_interval = true;
+          }
+        }
+      }
+    },
     // 跳转本页时参数变化后重新调取新闻公告详情数据
     beforeRouteUpdate(to, from, next) {
       this.tip_on = parseInt(to.query.tip) || 1;
       if (to.query.date) {
         this.date = to.query.date || '请选择';
-        this.submit_date = to.query.date.split(' ')[0] || '';
-        this.succ_date = this.utils.date_format(new Date(this.submit_date), 'MM月dd日 周w');
+        if (to.query.sd) {
+          this.interval_id = parseInt(to.query.sd);
+          this.getPaiqiDetail(parseInt(to.query.sd));
+        }
       }
       this.fn_tip();
       this.token = localStorage.getItem('token');
@@ -169,8 +202,10 @@
       this.tip_on = parseInt(this.$route.query.tip) || 1;
       if (this.$route.query.date) {
         this.date = this.$route.query.date || '请选择';
-        this.submit_date = this.$route.query.date.split(' ')[0] || '';
-        this.succ_date = this.utils.date_format(new Date(this.submit_date), 'MM月dd日 周w');
+        if (this.$route.query.sd) {
+          this.interval_id = parseInt(this.$route.query.sd);
+          this.getPaiqiDetail(parseInt(this.$route.query.sd));
+        }
       }
       this.fn_tip();
       this.token = localStorage.getItem('token');
@@ -185,17 +220,22 @@
           if (this.date === '请选择') {
             this.comfig_type = 2;
             this.get_calender();
-            return;
-          }
-          if (this.choice_tourist.length <= 0) {
+          } else if (this.interval_id === 0) {
+            this.$dialog.alert({
+              message: "请选择入馆时段",
+              confirmButtonColor: '#b38146'
+            });
+          } else if (this.choice_tourist.length <= 0) {
             this.$dialog.alert({
               message: "请选择或者添加参观者",
               confirmButtonColor: '#b38146'
-            })
+            });
           } else {
             this.$router.push({
               name: 'center',
-              query: { tip: 2, date: this.date, data: encodeURI(JSON.stringify(this.choice_tourist)) }
+              query: {
+                tip: 2, date: this.date, sd: this.interval_id, data: encodeURI(JSON.stringify(this.choice_tourist))
+              }
             });
           }
         } else {
@@ -206,9 +246,15 @@
       prev() {
         this.$router.push({
           name: 'center',
-          query: { tip: 1, date: this.date, data: encodeURI(JSON.stringify(this.choice_tourist)) }
+          query: { tip: 1, date: this.date, sd: this.interval_id, data: encodeURI(JSON.stringify(this.choice_tourist)) }
         });
       },
+
+      // 选择入馆时段
+      choice_interval(id) {
+        this.interval_id = id;
+      },
+
       // 点击选择常用人员
       choise_tourist(index) {
         this.tourist[index].checked = !this.tourist[index].checked;
@@ -242,6 +288,7 @@
       // 点击参观日期
       show_calender() {
         this.comfig_type = 1;
+        this.interval_id = 0;
         this.get_calender()
       },
 
@@ -301,7 +348,7 @@
             name: this.name,
             idcard: this.IDcard
           };
-          this.utils.ajax(this, 'ticket2/addVisitor', post).then(res => {
+          this.utils.ajax(this, 'ticket/addVisitor', post).then(res => {
             if (res) {
               this.$dialog.alert({
                 message: '添加成功',
@@ -329,7 +376,7 @@
       },
       // 点击删除按钮
       // fn_delete(IDcard) {
-      //   this.utils.ajax(this, 'ticket2/visitorDelete', { idcard: IDcard }).then(() => {
+      //   this.utils.ajax(this, 'ticket/visitorDelete', { idcard: IDcard }).then(() => {
       //     this.$dialog.alert({
       //       message: '已删除',
       //       confirmButtonColor: '#b38146'
@@ -339,7 +386,7 @@
       //   })
       // },
       getVisitorList() {
-        this.utils.ajax(this, 'ticket2/visitorList').then(list => {
+        this.utils.ajax(this, 'ticket/visitorList').then(list => {
           for (let i = 0; i < list.length; i++) {
             list[i].checked = false;
           }
@@ -370,16 +417,16 @@
         if (this.btn_click) {
           this.btn_click = false;
           let data = {
-            use_date: this.submit_date,
+            time_id: this.interval_id,
             visitor_ids: this.submitVisitor()
           };
           this.$dialog.confirm({
             message: '您总共预约了' + this.choice_tourist.length + '个人的门票',
             confirmButtonColor: '#b38146'
           }).then(() => {
-            this.utils.ajax(this, 'ticket2/purchase', data, [46, 55, 56]).then(() => {
+            this.utils.ajax(this, 'ticket/purchase', data, [46, 55, 56]).then(() => {
               this.btn_click = true;
-              this.$router.push({ name: 'center', query: { tip: 3, date: this.date } });
+              this.$router.push({ name: 'center', query: { tip: 3, date: this.date, sd: this.interval_id } });
               // this.$dialog.confirm({
               //   message: "预约成功",
               //   confirmButtonText: "查看订单",
@@ -420,16 +467,15 @@
       onConfirm(date) {
         this.show = false;
         this.btn_click = true;
-        this.date = this.formatDate(date) + ' 9:00-16:00';
-        this.submit_date = this.formatDate(date);
+        this.date = this.formatDate(date);
         if (this.comfig_type === 2) {
           this.$toast('日期选择成功，再次点击进入下一步');
         }
+        this.getPaiqiDetail();
       },
       formatter(day) {
         let date_str = this.utils.date_format(day.date, 'yyyy-MM-dd');
         for (let i = 0; i < this.paiqi.length; i++) {
-          // console.log(date_str)
           if (date_str === this.paiqi[i].use_date) {
             if (this.paiqi[i].status == 0) {
               day.bottomInfo = this.paiqi[i].desc;
@@ -452,8 +498,7 @@
         return day;
       },
       get_calender() {
-        this.utils.ajax(this, 'ticket2/paiqiList').then((res) => {
-          // console.log(res)
+        this.utils.ajax(this, 'ticket/paiqiList').then((res) => {
           if (res.length > 0) {
             this.paiqi = res;
             this.show = true
@@ -464,6 +509,25 @@
             })
           }
         })
+      },
+      getPaiqiDetail(id) {
+        this.utils.ajax(this, 'ticket/paiqiDetail', { use_date: this.date }).then((res) => {
+          if (res.time_list.length) {
+            this.show_interval = true;
+            this.paiqi_detail = res.time_list;
+            if (id) {
+              for (let i = 0; i < res.time_list.length; i++) {
+                if (res.time_list[i].id === id) {
+                  this.two_date = res.use_date + " " + res.time_list[i].start_time + "-" + res.time_list[i].end_time;
+                  if (this.date !== '请选择')
+                    this.succ_date = this.utils.date_format(new Date(this.date), 'MM月dd日 周w') + " " + res.time_list[i].start_time + "-" + res.time_list[i].end_time;
+                }
+              }
+            }
+          } else {
+            this.show_interval = false;
+          }
+        });
       }
     }
   };
@@ -512,6 +576,46 @@
 
         &:not(:last-child)::after {
           border: none;
+        }
+      }
+    }
+
+    .ticket-interval {
+      margin-bottom: 14px;
+      overflow: hidden;
+
+      h3 {
+        margin: 40px 26px 0;
+        font-size: 32px;
+        color: #333333;
+        font-weight: normal;
+      }
+
+      ul {
+        display: flex;
+        align-items: center;
+        margin: 40px 26px;
+        flex-wrap: wrap;
+
+        li {
+          border-radius: 10px;
+          border: 2px solid #efefef;
+          margin: 20px;
+          color: #666666;
+
+          p {
+            padding: 10px 20px;
+            font-size: 26px;
+
+            span:first-child {
+              margin-right: 40px;
+            }
+          }
+
+          &.on {
+            color: #cf903a;
+            border-color: #cf903a;
+          }
         }
       }
     }

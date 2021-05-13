@@ -23,7 +23,7 @@
           </div>
           <div class="text">
             <span>参观日期</span>
-            ：<p>{{item.use_date}}</p>
+            ：<p>{{item.use_date}} {{item.start_time}}-{{item.end_time}}</p>
           </div>
           <div class="text">
             <span>票价</span>
@@ -91,7 +91,7 @@
         this.$dialog.confirm({
           message: '确定删除常用联系人：' + name,
         }).then(() => {
-          this.utils.ajax(this, 'ticket2/visitorDelete', { idcard: IDcard }).then(() => {
+          this.utils.ajax(this, 'ticket/visitorDelete', { idcard: IDcard }).then(() => {
             this.$dialog.alert({
               message: '删除成功'
             }).then(() => {
@@ -195,7 +195,7 @@
       // 获取常用人列表
       getVisitorList(page, callback) {
         let post = { page: page, perpage: 10 };
-        this.utils.ajax(this, 'ticket2/visitorList', post).then(list => {
+        this.utils.ajax(this, 'ticket/visitorList', post).then(list => {
           this.count = list.length;
           for (let i = 0; i < list.length; i++) {
             this.contacts_list.push(list[i]);

@@ -6,7 +6,7 @@
     <div class="detail" v-if="detail.list">
       <p><span>预约编号</span>：{{detail.pay_order_sn}}</p>
       <p><span>预约时间</span>：{{detail.create_time}}</p>
-      <p><span>参观日期</span>：{{detail.use_date}}</p>
+      <p><span>参观日期</span>：{{detail.use_date}} {{detail.start_time}}-{{detail.end_time}}</p>
       <p><span>总金额</span>：{{detail.total_price==='0.00'?'免费':'￥'+detail.total_price}}</p>
     </div>
     <ul>
@@ -91,22 +91,29 @@
     methods: {
       // 点击退票按钮
       fn_refund() {
-        let post = { order_id: this.id, list_id: this.refund_ticket };
-        this.$dialog.confirm({
-          message: '确认退票吗？',
-          confirmButtonColor: '#b38146'
-        }).then(() => {
-          this.utils.ajax(this, 'my/ticketOrderRefund', post).then(() => {
-            this.$dialog.alert({
-              message: '退票成功',
-              confirmButtonColor: '#b38146'
-            }).then(() => {
-              this.last_refund = false;
-              this.getOrderDetail();
-            });
+        if (this.refund_ticket <= 0) {
+          this.$dialog.alert({
+            message: '未选中要退的票',
+            confirmButtonColor: '#b38146'
           });
-        }).catch(() => {
-        })
+        } else {
+          let post = { order_id: this.id, list_id: this.refund_ticket };
+          this.$dialog.confirm({
+            message: '确认退票吗？',
+            confirmButtonColor: '#b38146'
+          }).then(() => {
+            this.utils.ajax(this, 'my/ticketOrderRefund', post).then(() => {
+              this.$dialog.alert({
+                message: '退票成功',
+                confirmButtonColor: '#b38146'
+              }).then(() => {
+                this.last_refund = false;
+                this.getOrderDetail();
+              });
+            });
+          }).catch(() => {
+          })
+        }
       },
       // 选择要退的票
       fn_choose_checkbox(index) {
